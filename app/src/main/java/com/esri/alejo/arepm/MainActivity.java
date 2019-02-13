@@ -27,6 +27,7 @@ import com.esri.arcgisruntime.loadable.LoadStatusChangedEvent;
 import com.esri.arcgisruntime.loadable.LoadStatusChangedListener;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.ArcGISScene;
+import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.LayerList;
 import com.esri.arcgisruntime.mapping.view.BackgroundGrid;
 import com.esri.arcgisruntime.mapping.view.Camera;
@@ -79,10 +80,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initRecursos();
         //contenido de ar
         mSceneView = findViewById(R.id.sceneView);
+        //inicia el servicio de localizacion
+        initLocationService();
         // Request camera permissions...
         checkForCameraPermissions();
         //agregar mapa pequeño
         createLittleMap();
+
     }
 
     private void initRecursos() {
@@ -90,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         btnLocalizacion = (Button) this.findViewById(R.id.btnLocalizacion);
         btnLocalizacion.setOnClickListener(this);
+        contentMap = (RelativeLayout) this.findViewById(R.id.layout_miniMap);
     }
 
     /*public void requestLocationPermission() {
@@ -150,8 +155,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void updateLatestLocation() {
         if (location != null) {
-            txtLocalizacion.setText(String.format("lat: %s \nlon: %s \naltitude: %s \n",
-                    location.getLatitude(), location.getLongitude(), location.getAltitude()));
+            txtLocalizacion.setText(String.format("lat: %s \nlon: %s \naltitude: %s \naccuracy: %s \ngrados: %s",
+                    location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getAccuracy(), location.getBearing()));
+            locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
         }
     }
 
@@ -186,10 +192,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
      }**/
 
-     @Override
-     public void onLocationChanged(Location loc) {
-
-     }
+    @Override
+    public void onLocationChanged(Location location) {
+        updateLatestLocation();
+    }
 
      @Override
      public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -245,30 +251,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Setup the Scene for Augmented Reality
     private void setUpARScene() {
-        // Create scene without a basemap.  Background for scene content provided by device camera.
-        mSceneView.setScene(new ArcGISScene());
+        try{
+            // Create scene without a basemap.  Background for scene content provided by device camera.
+            mSceneView.setScene(new ArcGISScene());
 
-        // Add San Diego scene layer.  This operational data will render on a video feed (eg from the device camera).
-        mSceneView.getScene().getOperationalLayers().add(new ArcGISSceneLayer("https://tiles.arcgis.com/tiles/Imiq6naek6ZWdour/arcgis/rest/services/San_Diego_Textured_Buildings/SceneServer/layers/0"));
+            // Add San Diego scene layer.  This operational data will render on a video feed (eg from the device camera).
+            //mSceneView.getScene().getOperationalLayers().add(new ArcGISSceneLayer("https://tiles.arcgis.com/tiles/Imiq6naek6ZWdour/arcgis/rest/services/San_Diego_Textured_Buildings/SceneServer/layers/0"));
+            mSceneView.getScene().getOperationalLayers().add(new ArcGISSceneLayer("http://geogeeks2.maps.arcgis.com/home/webscene/viewer.html?webscene=cd82b7b61458456896bb3226b86bb20b"));
 
-        // Enable AR for scene view.
-        mSceneView.setARModeEnabled(true);
+            // Enable AR for scene view.
+            mSceneView.setARModeEnabled(true);
 
-        // Create our Preview view and set it as the content of our activity.
-        mPreview = new CameraPreview(this);
+            // Create our Preview view and set it as the content of our activity.
+            mPreview = new CameraPreview(this);
 
-        // Create an instance of Camera
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(mPreview);
+            // Create an instance of Camera
+            FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+            preview.addView(mPreview);
 
-        completeSetup();
+            completeSetup();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     private void completeSetup() {
         // Scene camera controlled by sensors
-        Camera cameraSanDiego = new Camera(32.707, -117.157, 60, 180, 0, 0);
+        //Camera cameraSanDiego = new Camera(32.707, -117.157, 60, 180, 0, 0);
+        Camera cam = new Camera(location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getBearing(), 0, 0);
         FirstPersonCameraController fpcController = new FirstPersonCameraController();
-        fpcController.setInitialPosition(cameraSanDiego);
+        fpcController.setInitialPosition(cam);
 
         // PhoneMotionDataSource works with both Android and iOS.
         PhoneMotionDataSource phoneSensors = new PhoneMotionDataSource(this);
@@ -314,8 +327,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void createLittleMap(){
         //fragMap = new fragmentMapa();
         vistaMapLittle = this.findViewById(R.id.mapView);
-        mapaLittle = new ArcGISMap(this.getResources().getString(R.string.URL_mapa_alrededores));
-        //mapaLittle = mapa2.getMap();
+        //mapaLittle = new ArcGISMap(this.getResources().getString(R.string.URL_mapa_alrededores));
+        Log.d("MainActivity", "se agrega la url");
+
+        Basemap.Type basemapType = Basemap.Type.STREETS_VECTOR;
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        int levelOfDetail = 11;
+        ArcGISMap mapaLittle = new ArcGISMap(basemapType, latitude, longitude, levelOfDetail);
+
         vistaMapLittle.setMap(mapaLittle);
         vistaMapLittle.setVisibility(View.VISIBLE);
         vistaMapLittle.setBackgroundGrid(new BackgroundGrid(Color.WHITE, Color.WHITE, 0, vistaMapLittle.getBackgroundGrid().getGridSize()));
@@ -328,12 +348,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mapaLittle.addLoadStatusChangedListener(new LoadStatusChangedListener() {
             @Override
             public void loadStatusChanged(LoadStatusChangedEvent loadStatusChangedEvent) {
-
+                Log.d("MainActivity", "entra a la carga");
                 String mapLoadStatus;
                 mapLoadStatus = loadStatusChangedEvent.getNewLoadStatus().name();
                 switch (mapLoadStatus) {
                     case "LOADED":
-
+                        Log.d("MainActivity", "cargado");
                         Toast.makeText(vistaMapLittle.getContext(),"Cargado",Toast.LENGTH_LONG).show();
                         contentMap.setVisibility(View.VISIBLE);
 
@@ -347,7 +367,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if(mapaLittle.getInitialViewpoint() != null){
                             vistaMapLittle.setViewpoint(mapaLittle.getInitialViewpoint());
                         }
-
                         break;
                 }
             }
