@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ArEPM</string>
+    <string name="URL_mapa_alrededores">http://geogeeks2.maps.arcgis.com/home/item.html?id=e69f0e8d852149aa8e3a0b7eedf8a895</string>
+</resources>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.esri.alejo.arepm.MainActivity">
+
+    <!--secene view y camera preview para la vista de AR-->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="350dp">
+
+            <FrameLayout
+                android:id="@+id/camera_preview"
+                android:layout_width="fill_parent"
+                android:layout_height="300dp"
+                android:layout_weight="1" />
+
+            <com.esri.arcgisruntime.mapping.view.SceneView
+                android:id="@+id/sceneView"
+                android:layout_width="match_parent"
+                android:layout_height="300dp">
+
+            </com.esri.arcgisruntime.mapping.view.SceneView>
+        </FrameLayout>
+
+        <RelativeLayout
+            android:id="@+id/layout_miniMap"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_gravity="bottom|right">
+
+            <com.esri.arcgisruntime.mapping.view.MapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <!--texto y boton para la geolocalizacion-->
+    <TextView
+        android:id="@+id/txtLocalizacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Localizacion"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnLocalizacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical|end"
+        android:text="Obtener"
+        android:textAlignment="gravity" />
+
+    <!--mini map para ubicacion en 2D-->
+
+</android.support.constraint.ConstraintLayout>
